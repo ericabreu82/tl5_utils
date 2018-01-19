@@ -4,16 +4,9 @@ endif()
 
 include_directories(
   ${TERRALIB_UTILS_ABSOLUTE_ROOT_DIR}/src
-  ${terralib_INCLUDE_DIRS}
-  ${terralib_DIR}
-  ${Boost_INCLUDE_DIR}
-  ${Boost_INCLUDE_DIR}/qwt
 )
 
-if(Qt5_FOUND)
-  set(CMAKE_AUTOMOC ON)
-  set(CMAKE_INCLUDE_CURRENT_DIR ON)
-endif()
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 file(GLOB TERRALIBUTILS_SRC_FILES ${TERRALIB_UTILS_ABSOLUTE_ROOT_DIR}/src/terralib_utils_app/*.cpp)
 file(GLOB TERRALIBUTILS_HDR_FILES ${TERRALIB_UTILS_ABSOLUTE_ROOT_DIR}/src/terralib_utils_app/*.h)
@@ -23,7 +16,6 @@ source_group("Header Files"  FILES ${TERRALIBUTILS_HDR_FILES})
 
 
 set(TERRALIBUTILS_DEPENDENCIES "terralib_utils")
-list(APPEND TERRALIBUTILS_DEPENDENCIES "terralib_mod_core")
 
 if(Qt5_FOUND)
   

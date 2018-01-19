@@ -37,7 +37,7 @@ te::utils::ExchangeService::~ExchangeService()
 
 }
 
-void te::utils::ExchangeService::toDatabase(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& tableName, const int& srid, const std::string& charEncoding)
+void te::utils::ExchangeService::toDatabase(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& tableName, const int& srid, const std::string& charEncoding, const std::string& whereClause)
 {
   //open input data source
   std::string inputConnInfo("file://");
@@ -144,8 +144,6 @@ void te::utils::ExchangeService::toDatabase(const std::string& filePath, const s
       idx->add(pClone);
     }
 
-
-
     //create primary key
     if (dataSetType->getPrimaryKey())
     {
@@ -167,7 +165,6 @@ void te::utils::ExchangeService::toDatabase(const std::string& filePath, const s
       }
     }
 
-
     //exchange
     std::map<std::string, std::string> nopt;
 
@@ -184,19 +181,103 @@ void te::utils::ExchangeService::toDatabase(const std::string& filePath, const s
 
     transactor->commit();
   }
-  catch (const std::exception& e)
+  catch (const std::exception& )
   {
     if (transactor.get())
       transactor->rollBack();
   }
 }
 
-void te::utils::ExchangeService::toMosaic(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& charEncoding, const std::string& tableName, const int& srid, const bool& append)
+void te::utils::ExchangeService::toMosaic(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& charEncoding, const std::string& tableName, const int& srid, const std::string& whereClause)
 {
 
 }
 
-void te::utils::ExchangeService::toFile(const std::string& connInfo, const std::string& dsType, const std::string& tableName, const std::string& filePath, const std::string& charEncoding, const int& srid)
+void te::utils::ExchangeService::toFile(const std::string& connInfo, const std::string& dsType, const std::string& tableName, const std::string& filePath, const std::string& charEncoding, const int& srid, const std::string& whereClause)
 {
+  //open input data source
+  std::string inputConnInfo = connInfo;
 
+  std::unique_ptr<te::da::DataSource> inputDataSource = te::da::DataSourceFactory::make(dsType, inputConnInfo);
+  inputDataSource->open();
+
+  //get srid information
+  int inputSRID = srid;
+  int outputSRID = srid;
+
+  try
+  {
+    //create adapter
+    std::auto_ptr<te::da::DataSetType> dsType = inputDataSource->getDataSetType(tableName);
+
+
+    //create data source
+    std::string connInfo("file://" + std::string(filePath));
+
+    std::unique_ptr<te::da::DataSource> dsOGR = te::da::DataSourceFactory::make("OGR", connInfo);
+
+    dsOGR->open();
+
+    te::da::DataSetTypeConverter* converter = new te::da::DataSetTypeConverter(dsType.get(), dsOGR->getCapabilities(), dsOGR->getEncoding());
+
+    te::da::AssociateDataSetTypeConverterSRID(converter, inputSRID, outputSRID);
+
+    te::da::DataSetType* dsTypeResult = converter->getResult();
+
+    dsTypeResult->setName(tableName);
+
+    // Check dataset name
+    if (!dsOGR->isDataSetNameValid(dsTypeResult->getName()))
+    {
+        bool aux;
+        std::string newName = te::common::ReplaceSpecialChars(dsTypeResult->getName(), aux);
+        dsTypeResult->setName(newName);
+    }
+
+    // Check properties names
+    std::vector<te::dt::Property* > props = dsTypeResult->getProperties();
+    std::map<std::size_t, std::string> invalidNames;
+    for (std::size_t i = 0; i < props.size(); ++i)
+    {
+      if (!dsOGR->isPropertyNameValid(props[i]->getName()))
+      {
+        invalidNames[i] = props[i]->getName();
+      }
+    }
+
+    if (!invalidNames.empty())
+    {
+      std::map<std::size_t, std::string>::iterator it = invalidNames.begin();
+
+      while (it != invalidNames.end())
+      {
+        bool aux;
+        std::string newName = te::common::ReplaceSpecialChars(it->second, aux);
+
+        props[it->first]->setName(newName);
+
+        ++it;
+      }
+    }
+
+    //exchange
+    std::map<std::string, std::string> nopt;
+
+    std::auto_ptr<te::da::DataSet> dataset = inputDataSource->getDataSet(tableName);
+
+    dsOGR->createDataSet(dsTypeResult, nopt);
+
+    std::auto_ptr<te::da::DataSetAdapter> dsAdapter(te::da::CreateAdapter(dataset.get(), converter));
+
+    if (dataset->moveBeforeFirst())
+      dsOGR->add(dsTypeResult->getName(), dsAdapter.get(), nopt);
+
+    dsOGR->close();
+  }
+  catch (const std::exception& )
+  {
+
+  }
+
+  return;
 }

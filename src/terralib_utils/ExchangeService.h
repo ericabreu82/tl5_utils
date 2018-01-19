@@ -26,11 +26,11 @@ namespace te
 
       public:
 
-        void toDatabase(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& tableName, const int& srid, const std::string& charEncoding);
+        void toDatabase(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& tableName, const int& srid, const std::string& charEncoding, const std::string& whereClause = "");
 
-        void toMosaic(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& charEncoding, const std::string& tableName, const int& srid, const bool& append = false);
+        void toMosaic(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& charEncoding, const std::string& tableName, const int& srid, const std::string& whereClause = "");
 
-        void toFile(const std::string& connInfo, const std::string& dsType, const std::string& tableName, const std::string& filePath, const std::string& charEncoding, const int& srid);
+        void toFile(const std::string& connInfo, const std::string& dsType, const std::string& tableName, const std::string& filePath, const std::string& charEncoding, const int& srid, const std::string& whereClause = "");
 
     };
   } //utils
