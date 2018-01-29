@@ -37,7 +37,7 @@ te::utils::ExchangeService::~ExchangeService()
 
 }
 
-void te::utils::ExchangeService::toDatabase(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& tableName, const int& srid, const std::string& charEncoding, const std::string& whereClause)
+void te::utils::ExchangeService::toDatabase(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& tableName, const int& srid, const std::string& charEncoding, const std::string& query)
 {
   //open input data source
   std::string inputConnInfo("file://");
@@ -168,7 +168,12 @@ void te::utils::ExchangeService::toDatabase(const std::string& filePath, const s
     //exchange
     std::map<std::string, std::string> nopt;
 
-    std::auto_ptr<te::da::DataSet> dataset = inputDataSource->getDataSet(dataSetNames[0]);
+    std::auto_ptr<te::da::DataSet> dataset;
+
+    if (query.empty())
+      dataset = inputDataSource->getDataSet(dataSetNames[0]);
+    else
+      dataset = inputDataSource->query(query);
 
     transactor->begin();
 
@@ -188,12 +193,12 @@ void te::utils::ExchangeService::toDatabase(const std::string& filePath, const s
   }
 }
 
-void te::utils::ExchangeService::toMosaic(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& charEncoding, const std::string& tableName, const int& srid, const std::string& whereClause)
+void te::utils::ExchangeService::toMosaic(const std::string& filePath, const std::string& connInfo, const std::string& dsType, const std::string& charEncoding, const std::string& tableName, const int& srid, const std::string& query)
 {
 
 }
 
-void te::utils::ExchangeService::toFile(const std::string& connInfo, const std::string& dsType, const std::string& tableName, const std::string& filePath, const std::string& charEncoding, const int& srid, const std::string& whereClause)
+void te::utils::ExchangeService::toFile(const std::string& connInfo, const std::string& dsType, const std::string& tableName, const std::string& filePath, const std::string& charEncoding, const int& srid, const std::string& query)
 {
   //open input data source
   std::string inputConnInfo = connInfo;
@@ -263,7 +268,12 @@ void te::utils::ExchangeService::toFile(const std::string& connInfo, const std::
     //exchange
     std::map<std::string, std::string> nopt;
 
-    std::auto_ptr<te::da::DataSet> dataset = inputDataSource->getDataSet(tableName);
+    std::auto_ptr<te::da::DataSet> dataset;
+
+    if (query.empty())
+      dataset = inputDataSource->getDataSet(tableName);
+    else
+      dataset = inputDataSource->query(query);
 
     dsOGR->createDataSet(dsTypeResult, nopt);
 

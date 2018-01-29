@@ -24,7 +24,8 @@ int main(int argc, char** argv)
   std::string outputTableName = "br_estados";
   std::string inputTableName = "br_estados";
   std::string charEncoding = "UTF-8";
-  std::string whereClause = "";
+  std::string query2db = "select * from br_estados where area_pgis > 100000000000";
+  std::string query2file = "select * from br_estados where nm_regiao = 'SUDESTE'";
   int srid = 4674; 
 
   try
@@ -39,10 +40,10 @@ int main(int argc, char** argv)
     te::utils::ExchangeService es;
 
     //export to database
-    es.toDatabase(inputFilePath, connInfo, dsType, outputTableName, srid, charEncoding, whereClause);
+    es.toDatabase(inputFilePath, connInfo, dsType, outputTableName, srid, charEncoding, query2db);
 
     //export to file
-    es.toFile(connInfo, dsType, inputTableName, outputFilePath, charEncoding, srid, whereClause);
+    es.toFile(connInfo, dsType, inputTableName, outputFilePath, charEncoding, srid, query2file);
 
     //finalize terralib
     te::utils::TerraLibService::finalizeTerraLib();
